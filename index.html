@@ -271,13 +271,13 @@
     #reportCard[data-report="r14"] td:nth-child(2){ width:240px; } /* Instructor Responsable */
     #reportCard[data-report="r14"] th:nth-child(3),
     #reportCard[data-report="r14"] td:nth-child(3){ width:120px; } /* Cantidad de Fichas */
-    #reportCard[data-report="r14"] th:nth-child(n+4),
-    #reportCard[data-report="r14"] td:nth-child(n+4){ width:58px; } /* Métricas */
+    #reportCard[data-report="r14"] th:nth-child(4),
+    #reportCard[data-report="r14"] td:nth-child(4){ width:120px; } /* Cantidad de horas */
+    #reportCard[data-report="r14"] th:nth-child(n+5),
+    #reportCard[data-report="r14"] td:nth-child(n+5){ width:58px; } /* Métricas */
 
     
     /* Columnas ampliadas (x2) — r14 */
-    #reportCard[data-report="r14"] th:nth-child(4),
-    #reportCard[data-report="r14"] td:nth-child(4),
     #reportCard[data-report="r14"] th:nth-child(5),
     #reportCard[data-report="r14"] td:nth-child(5),
     #reportCard[data-report="r14"] th:nth-child(6),
@@ -294,6 +294,8 @@
     #reportCard[data-report="r14"] td:nth-child(11),
     #reportCard[data-report="r14"] th:nth-child(12),
     #reportCard[data-report="r14"] td:nth-child(12),
+    #reportCard[data-report="r14"] th:nth-child(13),
+    #reportCard[data-report="r14"] td:nth-child(13),
     #reportCard[data-report="r14"] th:nth-child(13),
     #reportCard[data-report="r14"] td:nth-child(13){ width:116px; }
 /* Ajustes de tabla — r15 (Programa) */
@@ -551,10 +553,14 @@ tr:hover{background:#f1f5f9}
     }
     #dashboardArea .kpi-top-grid{
       display:grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(6, minmax(0, 1fr));
       gap:12px;
+      align-items:stretch;
     }
-    @media (max-width: 1200px){
+    @media (max-width: 1400px){
+      #dashboardArea .kpi-top-grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 980px){
       #dashboardArea .kpi-top-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     @media (max-width: 640px){
@@ -566,6 +572,7 @@ tr:hover{background:#f1f5f9}
       background:#fff;
       padding: 14px 16px 12px;
       min-height: 92px;
+      height:100%;
       display:flex;
       justify-content:space-between;
       gap:12px;
@@ -2829,6 +2836,25 @@ body.reports-mode #faAprTools{
   display:none !important;
 }
 
+
+/* ===== Top Empresas split (tabla + gráfica) ===== */
+.emp-split{ display:flex; gap:14px; align-items:stretch; margin-top:10px; }
+.emp-half{ flex:1 1 0; min-width:280px; display:flex; flex-direction:column; }
+
+.emp-split .emp-half.emp-left{ flex:0 0 40%; max-width:40%; }
+.emp-split .emp-half.emp-right{ flex:0 0 60%; max-width:60%; }
+@media (max-width: 980px){
+  .emp-split .emp-half.emp-left, .emp-split .emp-half.emp-right{ flex:1 1 0; max-width:none; }
+}
+.emp-chart-title{ font-weight:800; font-size:12px; color:#0f172a; margin:0 0 8px 0; }
+.emp-chart-wrap{ background:#fff; border:1px solid rgba(15,23,42,.08); border-radius:14px; padding:10px; flex:1; display:flex; align-items:center; justify-content:center; }
+.emp-chart-wrap canvas{ width:100% !important; height:260px !important; }
+.emp-chart-note{ margin-top:8px; font-size:12px; opacity:.75; }
+.dash-table tr.is-selected td{ background: rgba(34,197,94,.12); }
+@media (max-width: 980px){
+  .emp-split{ flex-direction:column; }
+  .emp-chart-wrap canvas{ height:240px !important; }
+}
 </style>
 </head>
 <body>
@@ -2908,6 +2934,19 @@ body.reports-mode #faAprTools{
 <div class="upload-area">
 <input accept=".xml,.xls,.xlsx" id="fileInput" multiple="" onchange="handleFiles()" style="display:none" type="file"/>
 <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">Seleccionar Archivos</button>
+
+<div id="driveFolderWrap" style="margin-top:10px; width:100%; display:flex; flex-direction:column; align-items:center;">
+  <div style="font-size:12px; color:var(--muted); margin-bottom:6px; text-align:center;">Carpeta Drive pública (URL o ID)</div>
+  <div class="searchbox" style="max-width:820px; width:100%; margin:0 auto;">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 18a8 8 0 1 1 5.293-14.293A8 8 0 0 1 10 18Zm0-2a6 6 0 1 0 0-12 6 6 0 0 0 0 12Zm9.707 4.293-4.2-4.2a1 1 0 0 0-1.414 1.414l4.2 4.2a1 1 0 0 0 1.414-1.414Z"/></svg>
+    <input autocomplete="off" id="driveFolderInput" type="text" value="https://drive.google.com/drive/folders/1_ixN-3NoVSN2wkRnNyoDkDvkxmDdN5u0?usp=sharing" readonly />
+  </div>
+  <div style="margin-top:6px; font-size:12px; color:var(--muted); text-align:center;">
+    <a href="https://drive.google.com/drive/folders/1_ixN-3NoVSN2wkRnNyoDkDvkxmDdN5u0?usp=sharing" target="_blank" rel="noopener">Abrir carpeta</a>
+  </div>
+</div>
+
+
 <p id="fileCount" style="margin-top:10px; font-size:13px"></p>
 <div aria-live="polite" class="checklist" id="requiredChecklist"></div>
 <div id="progressContainer">
@@ -2944,6 +2983,11 @@ body.reports-mode #faAprTools{
   <div id="df03StartMsg" class="fa-msg hidden" style="margin-top:10px"></div>
 
   <input type="file" id="df03InputStart" accept=".xml" multiple style="display:none" />
+
+  <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+    <button class="btn btn-primary" onclick="document.getElementById('df03InputStart').click()">Seleccionar Archivos</button>
+</div>
+
 
   <div id="df03DropzoneStart" class="df03-dropzone" role="button" tabindex="0" aria-label="Subir archivos DF-03 (opcional)">
     <div class="dz-icon" aria-hidden="true">
@@ -3143,6 +3187,36 @@ body.reports-mode #faAprTools{
     <div id="dashSlicersButtons" class="dash-fast-slicers"></div>
     </div>
   </div>
+        <div class="dash-card">
+          <div class="dash-card-title-row">
+            <div class="dash-card-title">Top 10 Empresas por Aprendices</div>
+          </div>
+
+          <div class="emp-split">
+            <div class="emp-half emp-left">
+              <div class="dash-table-wrap">
+                <table class="dash-table" id="dashTblEmpresa">
+                  <thead>
+                    <tr>
+                      <th class="sticky">Empresa</th>
+                      <th class="num">Aprendices</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dashTblEmpresaBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="emp-half emp-right">
+              <div class="emp-chart-title">Participación por empresa (clic para filtrar)</div>
+              <div class="emp-chart-wrap">
+                <canvas id="dashChartEmpresaPie" aria-label="Gráfica circular de empresas"></canvas>
+              </div>
+              <div class="emp-chart-note">Basado en PE-04 (AQ). Excluye SENA/DEMANDA SOCIAL/Sin nombre.</div>
+            </div>
+          </div>
+        </div>
+
 <div class="dash-charts-top">
   <div class="dash-chart-card dash-chart-map">
           <div class="dash-chart-title">Mapa de municipios (clic para filtrar)</div>
@@ -3423,14 +3497,27 @@ function normalizeFicha(v){
 }
 
 function stripBolNauticoPrefix(v){
-  const s = (v === undefined || v === null) ? "" : String(v).trim();
-  if(!s) return "";
-  // Quita prefijo "BOL NAUTICO /" cuando viene en campos como Responsable o Programa.
-  const out = s.replace(/^BOL\s*NAUTICO\s*\/\s*/i, "").trim();
-  return out;
+  const s0 = (v === undefined || v === null) ? "" : String(v).trim();
+  if(!s0) return "";
+  const flat = s0.replace(/\s+/g," ").trim();
+  // Caso especial: valor únicamente "BOL NAUTICO" (no es un nombre de instructor). Se trata como faltante
+  if(/^BOL\s*N[ÁA]UTICO$/i.test(flat)){
+    return "";
+  }
+  // Quita prefijos tipo "BOL NAUTICO", "BOL NÁUTICO" con/ sin separador ("/", "-", ":", espacios)
+  const cleaned = s0
+    .replace(/^BOL\s*N[ÁA]UTICO(?:\s*(?:\/|\-|\:)?\s*)?/i, "")
+    .trim();
+  return cleaned || s0;
 }
 
 
+function isEventoOrCursoEspecial(nivelRaw){
+  const s = (nivelRaw ?? "").toString().trim();
+  if(!s) return false;
+  const n = s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/\s+/g," ").trim();
+  return (n === "EVENTO" || n === "CURSO ESPECIAL");
+}
 function mergeSlashNames(a,b){
   const seen = new Set();
   const out = [];
@@ -3900,6 +3987,7 @@ const REPORTS = {
     columns: [
       {key:"responsable", label:"Instructor Responsable"},
       {key:"fichas", label:"Cantidad de Fichas", align:"num"},
+      {key:"horasTotal", label:"Cantidad de horas", align:"time"},
       {key:"activos", label:"Activos", align:"num"},
       {key:"matriculados", label:"Matriculados", align:"num"},
       {key:"enInduccion", label:"En Inducción", align:"num"},
@@ -3915,12 +4003,20 @@ const REPORTS = {
     ],
     filter: f => dashHasAllowedSource(f),
     data: rows => {
+      // Solo NIVEL_FORMACION = Evento / Curso Especial
+      const baseRows = (rows||[]).filter(r => isEventoOrCursoEspecial(r.nivel));
+      const useRows = baseRows;
+
       const g = {};
-      rows.forEach(r=>{
-        const k = (r.responsable || "Sin responsable").trim() || "Sin responsable";
+      useRows.forEach(r=>{
+        const respRaw = String(r.responsable || IGI_RESP_MAP.get(r.ficha) || "").trim();
+        const respNorm = respRaw.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/\s+/g," ").trim();
+        const resp = (respNorm === "BOL NAUTICO" ? "" : respRaw);
+        const k = resp.trim() || "Sin responsable";
         if(!g[k]) g[k] = {
           responsable:k,
           fichas:0,
+          horasTotal:0,
           activos:0,
           matriculados:0,
           enInduccion:0,
@@ -3936,6 +4032,7 @@ const REPORTS = {
         };
         const x = g[k];
         x.fichas += 1;
+        x.horasTotal += (Number(r.horasTotal)||0);
         x.activos += (Number(r.activos)||0);
         x.matriculados += (Number(r.matriculados)||0);
         x.enTransito += (Number(r.enTransito)||0);
@@ -4195,6 +4292,9 @@ let DF14A_UNIF_FICHAS = new Set(); // fichas DF-14A con estado 'Terminada por un
 let DF14A_SAT_END_FICHAS = new Set(); // fichas DF-14A con estado 'Terminada', 'Terminada por fecha' o 'Terminada por unificación' (exclusión solo SAT)
 let DF49_EXCL_FICHAS = new Set(); // fichas DF-49 con estado 'Cancelada' o 'Terminada por unificación'
 let ESTADO_EXCL_FICHAS = new Set(); // unión de exclusiones por estado (DF-49/DF-14A)
+let PE04_HOURS_PLANTA_TOTAL = 0;
+let PE04_HOURS_CONTRATISTAS_TOTAL = 0;
+let PE04_HOURS_TOTAL = 0;
 let ACTIVE_REPORT_ID = "r1";
 
 // Búsqueda + filtro por NIVEL (aplica a reportes 1-12; se excluyen módulos analíticos)
@@ -4763,13 +4863,14 @@ const FIELD_PREF = {
 let PE04_MUNICIPIOS_MASTER = new Set();
 
 function detectSource(fileName){
-  const n = (fileName||"").toUpperCase();
-  if(n.includes("PE-04") || n.includes("PE04")) return "PE04";
-  if(n.includes("DF-14A") || n.includes("DF14A")) return "DF14A";
-  if(n.includes("DF-49") || n.includes("DF49")) return "DF49";
-  if(n.includes("DF-51") || n.includes("DF51")) return "DF51";
-  if(n.includes("DF-53") || n.includes("DF53")) return "DF53";
-  if(n.includes("INFORME GENERAL INSTRUCTORES") || n.includes("INSTRUCTORES")) return "IGI";
+  const norm = normFileKey(fileName || "");
+  if(norm.includes("pe04")) return "PE04";
+  if(norm.includes("df14a")) return "DF14A";
+  if(norm.includes("df49")) return "DF49";
+  if(norm.includes("df51")) return "DF51";
+  if(norm.includes("df53")) return "DF53";
+  // IGI / instructores
+  if(norm.includes("instructores") || norm.includes("informegeneralinstructores")) return "IGI";
   return "OTRO";
 }
 
@@ -4901,6 +5002,32 @@ mergePreferred(existing, "modalidad", row.modalidad, srcTag);
   mergePreferred(existing, "nivel", row.nivel, srcTag);
   mergePreferred(existing, "tipo", row.tipo, srcTag);
   mergePreferred(existing, "responsable", row.responsable, srcTag);
+  // Empresa y matriculados PE-04
+  if(srcTag === "PE04"){ mergePreferred(existing, "empresa", row.empresa, srcTag); }
+  if(srcTag === "PE04" && row.matriculadosPE04 !== undefined){
+    if(existing.matriculadosPE04 === undefined || existing.matriculadosPE04 === null) existing.matriculadosPE04 = 0;
+    existing.matriculadosPE04 += (Number(row.matriculadosPE04)||0);
+  }
+
+  // Horas (PE-04): acumular por ficha y totales globales
+  if(srcTag === "PE04" && isEventoOrCursoEspecial(row.nivel || row.nivelFormacion || existing.nivel)){
+    // Horas vienen como minutos (ver parsePE04Fixed). Para el total se prioriza TOTAL_HORAS (AW).
+    const _hp = Number(row.horasPlanta)||0;           // minutos
+    const _hc = Number(row.horasContratistas)||0;     // minutos
+    const _ht = Number(row.horasTotal)||0;            // minutos (AW si existe, si no AR+AS)
+
+    if(existing.horasPlanta === undefined || existing.horasPlanta === null) existing.horasPlanta = 0;
+    if(existing.horasContratistas === undefined || existing.horasContratistas === null) existing.horasContratistas = 0;
+    if(existing.horasTotal === undefined || existing.horasTotal === null) existing.horasTotal = 0;
+
+    existing.horasPlanta += _hp;
+    existing.horasContratistas += _hc;
+    existing.horasTotal += (_ht > 0 ? _ht : (_hp + _hc));
+
+    PE04_HOURS_PLANTA_TOTAL += _hp;
+    PE04_HOURS_CONTRATISTAS_TOTAL += _hc;
+    PE04_HOURS_TOTAL += (_ht > 0 ? _ht : (_hp + _hc));
+  }
   mergePreferred(existing, "programaEspecial", row.programaEspecial, srcTag);
   mergePreferred(existing, "etapa", row.etapa, srcTag);
 
@@ -4958,6 +5085,11 @@ function normFileKey(s){
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "");
 }
+
+
+/* =========================================================
+   CARGA LOCAL (ARCHIVOS)
+   ========================================================= */
 
 function evaluateRequiredUploads(files){
   const list = Array.from(files || []);
@@ -5049,8 +5181,9 @@ function handleFiles(){
 }
 
 // Ajuste 5: Carga con barra de progreso
-async function processFiles(){
-  const files = document.getElementById("fileInput").files;
+async function processFiles(filesOverride){
+  const inputEl = document.getElementById("fileInput");
+  const files = filesOverride ? Array.from(filesOverride) : Array.from((inputEl && inputEl.files) ? inputEl.files : []);
   if(!files.length) return;
 
   // Lista de chequeo (Ajuste 1)
@@ -5073,6 +5206,9 @@ async function processFiles(){
   DF14A_SAT_END_FICHAS = new Set();
   DF49_EXCL_FICHAS = new Set();
   ESTADO_EXCL_FICHAS = new Set();
+  PE04_HOURS_PLANTA_TOTAL = 0;
+  PE04_HOURS_CONTRATISTAS_TOTAL = 0;
+  PE04_HOURS_TOTAL = 0;
   const fichaMap = new Map();
 
   for(let i=0; i<files.length; i++){
@@ -5299,6 +5435,9 @@ if(_srcTag === "DF14A"){
   // Key en columna E; Nivel=I, Tipo=L, Etapa=O, Modalidad=P, Responsable=Q
   const parsePE04Fixed = () => {
     const out = [];
+    let idxHorasPlanta = 43;        // AR (fallback)
+    let idxHorasContratistas = 44;  // AS (fallback)
+    let idxTotalHoras = 48;         // AW (fallback)
     const allRows = Array.from(xmlDoc.getElementsByTagName("Row"));
     for(const r of allRows){
       const cells = Array.from(r.getElementsByTagName("Cell"));
@@ -5307,7 +5446,17 @@ if(_srcTag === "DF14A"){
 
       const keyE = cellText(dense[4]); // E
       if(!keyE) continue;
-      if(normKeyLocal(keyE) === "FICHA") continue;
+      if(normKeyLocal(keyE) === "FICHA"){
+        // Detecta índices por encabezado cuando el XML no incluye ss:Index para celdas vacías
+        for(let i=0;i<dense.length;i++){
+          const h = normKeyLocal(cellText(dense[i]));
+          if(!h) continue;
+          if(h === "HORAS_PLANTA" || h.endsWith("_HORAS_PLANTA") || h.includes("HORAS_PLANTA")) idxHorasPlanta = i;
+          if(h === "TOTAL_HORAS" || h.endsWith("_TOTAL_HORAS") || h.includes("TOTAL_HORAS")) idxTotalHoras = i;
+          if(h === "HORAS_CONTRATISTAS" || h.endsWith("_HORAS_CONTRATISTAS") || h.includes("HORAS_CONTRATISTAS")) idxHorasContratistas = i;
+        }
+        continue;
+      }
 
       const ficha = normalizeFicha(keyE);
       if(!ficha) continue;
@@ -5317,9 +5466,19 @@ if(_srcTag === "DF14A"){
       const etapa = cellText(dense[14]);       // O
       const modalidad = cellText(dense[15]);   // P
       const responsable = stripBolNauticoPrefix(cellText(dense[16])); // Q
+      const empresa = cellText(dense[19]);   // T (NOMBRE_EMPRESA)
       const programa = stripBolNauticoPrefix(cellText(dense[26]));      // AA (NOMBRE_PROGRAMA_FORMACION)
       const departamentoCurso = cellText(dense[30]);   // AE (NOMBRE_DEPARTAMENTO_CURSO)
       const municipio = cellText(dense[32]);   // AG (NOMBRE_MUNICIPIO_CURSO)
+      const horasPlanta = parseHoursLoose(cellText(dense[idxHorasPlanta]));        // HORAS_PLANTA (AR por defecto) -> minutos
+      const horasContratistas = parseHoursLoose(cellText(dense[idxHorasContratistas]));  // HORAS_CONTRATISTAS (AS por defecto) -> minutos
+      const totalHoras = parseHoursLoose(cellText(dense[idxTotalHoras]));              // TOTAL_HORAS (AW por defecto) -> minutos
+      const horasTotal = (totalHoras > 0 ? totalHoras : (horasPlanta + horasContratistas));
+      // Totales globales PE-04 (minutos) para KPIs
+      PE04_HOURS_PLANTA_TOTAL += (Number(horasPlanta)||0);
+      PE04_HOURS_CONTRATISTAS_TOTAL += (Number(horasContratistas)||0);
+      PE04_HOURS_TOTAL += (Number(horasTotal)||0);
+
       const fechaInicioRaw = cellText(dense[12]); // M (FECHA_INICIO_FICHA)
       const fechaFinRaw = cellText(dense[13]); // N (FECHA_TERMINACION_FICHA)
       const programaEspecial = cellText(dense[37]); // AL (NOMBRE_PROGRAMA_ESPECIAL)
@@ -5337,10 +5496,11 @@ if(_srcTag === "DF14A"){
       if(!modalidad && !responsable && !nivel && !tipo && !etapa && !programaEspecial && !fechaInicioRaw) continue;
 
       out.push({ 
-        ficha, programa, nivel, tipo, etapa, modalidad, responsable, departamentoCurso, municipio, 
+        ficha, empresa, programa, nivel, tipo, etapa, modalidad, responsable, horasTotal, horasPlanta, horasContratistas, departamentoCurso, municipio, 
         programaEspecial,
         // KPIs (Matriculados) + desglose por género
         matriculados,
+        matriculadosPE04: matriculados,
         totalApreMasculinos,
         totalApreFemeninos,
         totalApreNoBinario,
@@ -6171,6 +6331,16 @@ function fmtNum(n){
   return v.toLocaleString("es-CO");
 }
 
+
+function fmtTime(mins){
+  const v = Number(mins);
+  if(!isFinite(v) || v <= 0) return "0:00";
+  const t = Math.round(v);
+  const h = Math.floor(t/60);
+  const m = t % 60;
+  return `${h}:${String(m).padStart(2,"0")}`;
+}
+
 function setActiveReport(id){
   const changed = (ACTIVE_REPORT_ID !== id);
   const prevId = ACTIVE_REPORT_ID;
@@ -6385,8 +6555,12 @@ function renderTable(config){
       if(col.align === "num"){
         const nn = Number(val);
         if(isFinite(nn)) val = fmtNum(nn);
+      }else if(col.align === "time"){
+        // val se interpreta como minutos (numérico). Si viene string, se intenta convertir.
+        const mm = Number(val);
+        val = isFinite(mm) ? fmtTime(mm) : fmtTime(parseHoursLoose(val));
       }
-      const cls = col.align === "num" ? "num" : "";
+      const cls = (col.align === "num" || col.align === "time") ? "num" : "";
       bHtml += `<td class="${cls}">${val}</td>`;
     });
     bHtml += "</tr>";
@@ -7070,6 +7244,7 @@ function dashRenderYearDropdown(){
       DASH_STATE.filters.year = new Set(checkedYears.map(String));
       updateSummary();
       dashRender();
+  try{ setTimeout(()=>{ const c = (DASH_STATE && DASH_STATE.charts) ? DASH_STATE.charts.empresaPie : null; if(c && typeof c.resize==='function'){ c.resize(); c.update(); } }, 80); }catch(e){}
     });
   });
 }
@@ -7147,6 +7322,7 @@ function dashShowYearOverlayIfNeeded(){
     ov.classList.add("hidden");
     dashRenderYearDropdown();
     dashRender();
+  try{ setTimeout(()=>{ const c = (DASH_STATE && DASH_STATE.charts) ? DASH_STATE.charts.empresaPie : null; if(c && typeof c.resize==='function'){ c.resize(); c.update(); } }, 80); }catch(e){}
   };
 
   // Bloquear click accidental fuera (se mantiene visible hasta "Continuar")
@@ -7235,6 +7411,7 @@ function dashRequestRender(){
   __dashRenderRaf = requestAnimationFrame(() => {
     __dashRenderRaf = 0;
     dashRender();
+  try{ setTimeout(()=>{ const c = (DASH_STATE && DASH_STATE.charts) ? DASH_STATE.charts.empresaPie : null; if(c && typeof c.resize==='function'){ c.resize(); c.update(); } }, 80); }catch(e){}
   });
 }
 
@@ -7318,7 +7495,8 @@ let DASH_STATE = {
     municipio: new Set(),
     responsable: new Set(),
     programa: new Set(),
-    programaEspecial: new Set(),
+        empresa: new Set(),
+programaEspecial: new Set(),
     year: new Set(),
     atrasoBucket: new Set()
   },
@@ -7349,7 +7527,8 @@ const DASH_DIMS = [
   {key:"estadoCurso", label:"ESTADO_CURSO", get:r => dashEstadoCursoValue(r?.estado)},
   {key:"municipio", label:"Municipio", get:r => dashMunicipioValue(r?.municipio)},
   {key:"programa", label:"Programa", get:r => dashStr(r?.programa, "(Sin programa)")},
-  {key:"responsable", label:"Responsable", get:r => dashStr(r?.responsable, "(Sin responsable)")},
+    {key:"empresa", label:"Empresa", get:r => dashStr(r?.empresa, "(Sin empresa)")},
+{key:"responsable", label:"Responsable", get:r => dashStr(r?.responsable, "(Sin responsable)")},
   {key:"modalidad", label:"Modalidad", get:r => dashModalidadValue(r?.modalidad)},
   {key:"nivel", label:"Nivel", get:r => dashNivelValue(r?.nivel)},
   {key:"tipo", label:"Tipo", get:r => dashTipoValue(r?.tipo)},
@@ -7680,6 +7859,7 @@ function renderDashboardView(){
   const overlayShown = dashShowYearOverlayIfNeeded();
   if(!overlayShown){
     dashRender();
+  try{ setTimeout(()=>{ const c = (DASH_STATE && DASH_STATE.charts) ? DASH_STATE.charts.empresaPie : null; if(c && typeof c.resize==='function'){ c.resize(); c.update(); } }, 80); }catch(e){}
   }
 
   // Bind UI (búsqueda / export) de tabla aprendices DF-03
@@ -7706,6 +7886,7 @@ function dashInitUI(){
     mm.addEventListener("change", () => {
       DASH_STATE.mapMetric = mm.value || "matriculados";
       dashRender();
+  try{ setTimeout(()=>{ const c = (DASH_STATE && DASH_STATE.charts) ? DASH_STATE.charts.empresaPie : null; if(c && typeof c.resize==='function'){ c.resize(); c.update(); } }, 80); }catch(e){}
     });
   }
 
@@ -7760,7 +7941,8 @@ function dashRenderActiveFilters(){
 
   const q = (DASH_STATE.search || "").trim();
   if(q){
-    pills.push({label:`Búsqueda: ${q}`, onClick: () => { DASH_STATE.search=""; const s=document.getElementById("dashSearch"); if(s) s.value=""; dashRender(); }});
+    pills.push({label:`Búsqueda: ${q}`, onClick: () => { DASH_STATE.search=""; const s=document.getElementById("dashSearch"); if(s) s.value=""; dashRender();
+  try{ setTimeout(()=>{ const c = (DASH_STATE && DASH_STATE.charts) ? DASH_STATE.charts.empresaPie : null; if(c && typeof c.resize==='function'){ c.resize(); c.update(); } }, 80); }catch(e){} }});
   }
 
   // dimension filters
@@ -7810,6 +7992,9 @@ function dashRenderKpis(rows){
   const genMasculino = sum("totalApreMasculinos");
   const genFemenino = sum("totalApreFemeninos");
   const genNoBinario = sum("totalApreNoBinario");
+  const horasRows = rows.filter(r => isEventoOrCursoEspecial(r.nivel));
+  const horasPlanta = horasRows.reduce((s,r)=> s + (Number(r?.horasPlanta)||0), 0);
+  const horasContratistas = horasRows.reduce((s,r)=> s + (Number(r?.horasContratistas)||0), 0);
 
   const ocup = (cupo > 0) ? (matric / cupo) : 0;
   const efect = (matric > 0) ? (activos / matric) : 0;
@@ -7925,6 +8110,29 @@ function dashRenderKpis(rows){
           <div class="kpi-icon" aria-hidden="true" style="background:rgba(220,38,38,.08);color:rgba(220,38,38,1);">${iconWarn}</div>
         </div>
       </div>
+
+      <div class="kpi-card">
+        <div class="kpi-left">
+          <div class="kpi-title">Horas planta</div>
+          <div class="kpi-value">${escHtml(fmtTime(horasPlanta))}</div>
+          <div class="kpi-meta"><span class="kpi-pill">NIVEL_FORMACION: Evento / Curso Especial</span></div>
+        </div>
+        <div class="kpi-right">
+          <div class="kpi-icon" aria-hidden="true">${iconBar}</div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-left">
+          <div class="kpi-title">Horas contratistas</div>
+          <div class="kpi-value">${escHtml(fmtTime(horasContratistas))}</div>
+          <div class="kpi-meta"><span class="kpi-pill">NIVEL_FORMACION: Evento / Curso Especial</span></div>
+        </div>
+        <div class="kpi-right">
+          <div class="kpi-icon" aria-hidden="true">${iconBar}</div>
+        </div>
+      </div>
+</div>
     </div>
 
     <div class="kpi-embudo">
@@ -8760,6 +8968,106 @@ function dashRenderCharts(rows){
 }
 
 
+
+function dashRenderDonutSVG(containerEl, labels, values, onLabelClick, opt){
+  // Fallback sin Chart.js: donut SVG interactivo
+  if(!containerEl) return;
+  const total = (values || []).reduce((a,v)=> a + (Number(v)||0), 0);
+  containerEl.innerHTML = "";
+  if(!total){
+    const msg = document.createElement("div");
+    msg.style.opacity = ".7";
+    msg.style.fontSize = "12px";
+    msg.textContent = "Sin datos para graficar.";
+    containerEl.appendChild(msg);
+    return;
+  }
+
+  const pal = ["#065f46","#0f766e","#15803d","#16a34a","#22c55e","#4ade80","#86efac","#bbf7d0","#047857","#10b981","#34d399"];
+  const W = 360, H = 260;
+  const cx = W/2, cy = H/2;
+  const R = 105, r = 62;
+
+  const svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("width","100%");
+  svg.setAttribute("height","260");
+  svg.style.display = "block";
+
+  function polarToCartesian(cx, cy, radius, angleRad){
+    return {
+      x: cx + radius * Math.cos(angleRad),
+      y: cy + radius * Math.sin(angleRad)
+    };
+  }
+
+  function arcPath(cx, cy, R, r, start, end){
+    const p1 = polarToCartesian(cx, cy, R, start);
+    const p2 = polarToCartesian(cx, cy, R, end);
+    const p3 = polarToCartesian(cx, cy, r, end);
+    const p4 = polarToCartesian(cx, cy, r, start);
+    const large = (end - start) > Math.PI ? 1 : 0;
+    // outer arc then inner arc (reverse)
+    return [
+      `M ${p1.x.toFixed(3)} ${p1.y.toFixed(3)}`,
+      `A ${R} ${R} 0 ${large} 1 ${p2.x.toFixed(3)} ${p2.y.toFixed(3)}`,
+      `L ${p3.x.toFixed(3)} ${p3.y.toFixed(3)}`,
+      `A ${r} ${r} 0 ${large} 0 ${p4.x.toFixed(3)} ${p4.y.toFixed(3)}`,
+      "Z"
+    ].join(" ");
+  }
+
+  let angle = -Math.PI/2; // start at 12 o'clock
+  for(let i=0;i<labels.length;i++){
+    const v = Number(values[i])||0;
+    if(v<=0) continue;
+    const frac = v / total;
+    const next = angle + frac * Math.PI * 2;
+
+    const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+    path.setAttribute("d", arcPath(cx, cy, R, r, angle, next));
+    path.setAttribute("fill", pal[i % pal.length]);
+    path.style.cursor = "pointer";
+    path.style.opacity = "0.85";
+    path.addEventListener("mouseenter", () => { path.style.opacity = "1"; });
+    path.addEventListener("mouseleave", () => { path.style.opacity = "0.85"; });
+    path.addEventListener("click", () => { if(typeof onLabelClick === "function") onLabelClick(labels[i]); });
+
+    const title = document.createElementNS("http://www.w3.org/2000/svg","title");
+    const p = Math.round(frac*10000)/100;
+    title.textContent = `${labels[i]}: ${fmtNum(v)} (${p}%)`;
+    path.appendChild(title);
+
+    svg.appendChild(path);
+    angle = next;
+  }
+
+  // Center label
+  const center = document.createElementNS("http://www.w3.org/2000/svg","text");
+  center.setAttribute("x", cx);
+  center.setAttribute("y", cy);
+  center.setAttribute("text-anchor","middle");
+  center.setAttribute("dominant-baseline","middle");
+  center.setAttribute("font-size","12");
+  center.setAttribute("font-weight","700");
+  center.setAttribute("fill","#0f172a");
+  center.textContent = "Empresas";
+  svg.appendChild(center);
+
+  containerEl.appendChild(svg);
+}
+
+
+function dashHexWithAlpha(color, alphaHex){
+  if(color === null || color === undefined) return color;
+  const c = String(color).trim();
+  // #RRGGBB
+  if(/^#([0-9a-fA-F]{6})$/.test(c)) return c + alphaHex;
+  // #RRGGBBAA
+  if(/^#([0-9a-fA-F]{8})$/.test(c)) return c.slice(0,7) + alphaHex;
+  return c;
+}
+
 function dashUpsertChart(key, canvasId, type, labels, values, onLabelClick, opt){
   const el = document.getElementById(canvasId);
   if(!el) return;
@@ -8785,6 +9093,45 @@ function dashUpsertChart(key, canvasId, type, labels, values, onLabelClick, opt)
     data.datasets[0].backgroundColor = bg;
     data.datasets[0].borderColor = bd;
     data.datasets[0].borderWidth = 1;
+  }
+
+
+  // Resaltar selección (cuando existe un filtro activo para este gráfico)
+  if(opt && opt.filterKey && type === "doughnut"){
+    try{
+      const sel = (DASH_STATE && DASH_STATE.filters) ? DASH_STATE.filters[opt.filterKey] : null;
+      if(sel && sel.size){
+        const n = (labels && labels.length) ? labels.length : 0;
+        let bg = data.datasets[0].backgroundColor;
+        let bd = data.datasets[0].borderColor;
+
+        const bgArr = Array.isArray(bg) ? bg.slice() : Array.from({length:n}, ()=> bg || "#16a34ab3");
+        const bdArr = Array.isArray(bd) ? bd.slice() : Array.from({length:n}, ()=> bd || "#16a34a");
+
+        const alphaOn = "E6"; // ~90%
+        const alphaOff = "26"; // ~15%
+
+        data.datasets[0].backgroundColor = bgArr.map((c, i) => {
+          const lab = (labels && labels[i] !== undefined) ? labels[i] : "";
+          const match = (typeof dashMatchValue === "function") ? (dashMatchValue(opt.filterKey, lab) || lab) : lab;
+          const isSel = sel.has(match);
+          return dashHexWithAlpha(c, isSel ? alphaOn : alphaOff);
+        });
+
+        data.datasets[0].borderColor = bdArr.map((c, i) => {
+          const lab = (labels && labels[i] !== undefined) ? labels[i] : "";
+          const match = (typeof dashMatchValue === "function") ? (dashMatchValue(opt.filterKey, lab) || lab) : lab;
+          const isSel = sel.has(match);
+          return isSel ? c : dashHexWithAlpha(c, "66");
+        });
+
+        data.datasets[0].borderWidth = Array.from({length:n}, (_, i) => {
+          const lab = (labels && labels[i] !== undefined) ? labels[i] : "";
+          const match = (typeof dashMatchValue === "function") ? (dashMatchValue(opt.filterKey, lab) || lab) : lab;
+          return sel.has(match) ? 2 : 1;
+        });
+      }
+    }catch(e){}
   }
 
   const options = {
@@ -8878,10 +9225,26 @@ function dashUpsertChart(key, canvasId, type, labels, values, onLabelClick, opt)
 
     existing.options = options;
     existing.update();
+    try{ if(type === 'doughnut') { existing.resize(); } }catch(e){}
     return;
   }
 
+  try{
   DASH_STATE.charts[key] = new Chart(el.getContext("2d"), { type, data, options });
+} catch(err){
+  // Fallback: si Chart.js no está disponible o falla, renderiza SVG (solo doughnut)
+  if(type === "doughnut"){
+    const wrap = el.parentElement || el;
+    try{
+      el.style.display = "none";
+      dashRenderDonutSVG(wrap, labels, values, onLabelClick, opt);
+      return;
+    }catch(e2){
+      // no-op
+    }
+  }
+  throw err;
+}
 }
 
 
@@ -9276,6 +9639,7 @@ function dashInitMuniSortUI(){
       DASH_STATE.muniPage = 1;
       dashUpdateMuniSortIndicators();
       dashRender();
+  try{ setTimeout(()=>{ const c = (DASH_STATE && DASH_STATE.charts) ? DASH_STATE.charts.empresaPie : null; if(c && typeof c.resize==='function'){ c.resize(); c.update(); } }, 80); }catch(e){}
     });
   });
 
@@ -9316,6 +9680,7 @@ function dashInitCritSortUI(){
       DASH_STATE.critPage = 1;
       dashUpdateCritSortIndicators();
       dashRender();
+  try{ setTimeout(()=>{ const c = (DASH_STATE && DASH_STATE.charts) ? DASH_STATE.charts.empresaPie : null; if(c && typeof c.resize==='function'){ c.resize(); c.update(); } }, 80); }catch(e){}
     });
   });
 
@@ -9530,6 +9895,7 @@ function dashRenderCritPager(totalRows, page, pageSize){
       DASH_STATE.critPage = next;
       // Mantener la ordenación vigente; re-render completo para consistencia
       dashRender();
+  try{ setTimeout(()=>{ const c = (DASH_STATE && DASH_STATE.charts) ? DASH_STATE.charts.empresaPie : null; if(c && typeof c.resize==='function'){ c.resize(); c.update(); } }, 80); }catch(e){}
     });
   });
 }
@@ -9603,6 +9969,7 @@ function dashRenderMuniPager(totalRows, page, pageSize){
       const next = Math.min(Math.max(1, n), totalPages);
       DASH_STATE.muniPage = next;
       dashRender();
+  try{ setTimeout(()=>{ const c = (DASH_STATE && DASH_STATE.charts) ? DASH_STATE.charts.empresaPie : null; if(c && typeof c.resize==='function'){ c.resize(); c.update(); } }, 80); }catch(e){}
     });
   });
 }
@@ -9764,6 +10131,7 @@ function dashRenderTables(rows){
         DASH_STATE.search = ficha;
         DASH_STATE.critPage = 1;
         dashRender();
+  try{ setTimeout(()=>{ const c = (DASH_STATE && DASH_STATE.charts) ? DASH_STATE.charts.empresaPie : null; if(c && typeof c.resize==='function'){ c.resize(); c.update(); } }, 80); }catch(e){}
       });
     });
   }
@@ -9886,7 +10254,89 @@ function dashRenderTables(rows){
 
   }
   // (Bloque duplicado removido por corrección de sintaxis)
+  // Top 10 Empresas por Aprendices (PE-04) + gráfica circular (tabla y gráfica como segmentación MULTI)
+  const empBody = document.getElementById("dashTblEmpresaBody");
+  const empCanvas = document.getElementById("dashChartEmpresaPie");
+  if(empBody){
+    const EXCL = new Set([
+      "DEMANDA SOCIAL (SENA)",
+      "SERVICIO NACIONAL DE APRENDIZAJE - SENA",
+      "(SIN NOMBRE)",
+      "SIN NOMBRE"
+    ]);
+
+    const normEmp = (s) => (s ?? "")
+      .toString()
+      .trim()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+      .toUpperCase()
+      .replace(/\s+/g," ")
+      .trim();
+
+    const isBad = (ne) => (!ne || EXCL.has(ne));
+    const metric = (r) => (Number(r?.matriculadosPE04 ?? 0) || 0);
+
+    // Base: mantener categorías visibles aunque exista filtro de empresa,
+    // pero respetar el resto de segmentaciones del dashboard.
+    const baseRows = (typeof dashGetFilteredRows === "function") ? dashGetFilteredRows("empresa") : (rows || []);
+
+    const agg = new Map();     // ne -> aprendices
+    const display = new Map(); // ne -> nombre observado (primer valor)
+    for(const r of (baseRows || [])){
+      const empRaw = String(r?.empresa || "").trim();
+      const ne = normEmp(empRaw);
+      if(isBad(ne)) continue;
+      const v = metric(r);
+      if(v <= 0) continue;
+      if(!display.has(ne)) display.set(ne, empRaw);
+      agg.set(ne, (agg.get(ne) || 0) + v);
+    }
+
+    const topNorm = Array.from(agg.entries())
+      .sort((a,b) => (b[1] - a[1]) || String(display.get(a[0]) || a[0]).localeCompare(String(display.get(b[0]) || b[0])))
+      .slice(0, 10)
+      .map(([ne]) => ne);
+
+    // Render tabla Top 10 (mantiene el Top 10 basado en baseRows)
+    const sel = (DASH_STATE && DASH_STATE.filters && DASH_STATE.filters.empresa) ? DASH_STATE.filters.empresa : new Set();
+    const topRows = topNorm.map(ne => ({
+      empresa: display.get(ne) || ne,
+      aprendices: (agg.get(ne) || 0)
+    }));
+
+    empBody.innerHTML = topRows.map(x => {
+      const match = (typeof dashMatchValue === "function") ? (dashMatchValue("empresa", x.empresa) || x.empresa) : x.empresa;
+      const isSel = sel && sel.has(match);
+      return `
+        <tr data-empresa="${escAttr(x.empresa)}" class="${isSel ? "is-selected" : ""}">
+          <td class="sticky">${escHtml(x.empresa)}</td>
+          <td class="num">${escHtml(fmtNum(x.aprendices))}</td>
+        </tr>
+      `;
+    }).join("");
+
+    // Tabla como segmentación MULTI (clic alterna selección; permite seleccionar varias)
+    empBody.onclick = (ev) => {
+      const tr = ev.target && ev.target.closest ? ev.target.closest("tr[data-empresa]") : null;
+      if(!tr) return;
+      const emp = tr.getAttribute("data-empresa") || "";
+      const match = (typeof dashMatchValue === "function") ? (dashMatchValue("empresa", emp) || emp) : emp;
+      dashToggleFilter("empresa", match);
+    };
+
+    // Gráfica circular (doughnut) -> segmentación MULTI
+    if(empCanvas && typeof dashUpsertChart === "function"){
+      const labels = topNorm.map(ne => display.get(ne) || ne);
+      const values = topNorm.map(ne => (agg.get(ne) || 0));
+      dashUpsertChart("empresaPie", "dashChartEmpresaPie", "doughnut", labels, values, (label) => {
+        const match = (typeof dashMatchValue === "function") ? (dashMatchValue("empresa", label) || label) : label;
+        dashToggleFilter("empresa", match);
+      }, { percent:true, theme:"green", filterKey:"empresa" });
+    }
+  }
+
 }
+
 
 
 function syncFichaAcumulativaNav(){
@@ -9941,6 +10391,17 @@ function escHtml(s){
     .replaceAll(">","&gt;")
     .replaceAll('"',"&quot;")
     .replaceAll("'","&#39;");
+}
+
+// Escape para valores en atributos HTML (data-*)
+function escAttr(s){
+  return String(s ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;")
+    .replace(/`/g,"&#96;");
 }
 
 function sanitizeFilename(name){
@@ -10400,6 +10861,53 @@ function parseNumLoose(v){
   const cleaned = s.replace(/[%\s]/g,"").replace(/\./g,"").replace(/,/g,".");
   const n = Number(cleaned);
   return isFinite(n) ? n : 0;
+}
+
+
+function parseHoursLoose(v){
+  // Convierte valores de horas a minutos.
+  // Soporta:
+  // - "H:MM" o "HH:MM:SS"
+  // - DateTime de Excel XML: "YYYY-MM-DDTHH:MM:SS(.sss)" (ej. 1900-01-01T15:55:00.000 -> 39:55)
+  // - Numéricos: horas decimales o fracción de día (heurística)
+  if(v === null || v === undefined) return 0;
+  const s0 = String(v).trim();
+  if(!s0) return 0;
+  const s = s0.replace(/\s+/g,"");
+
+  // 1) H:MM o H:MM:SS
+  let m = s.match(/^(\d+):(\d{1,2})(?::(\d{1,2}))?$/);
+  if(m){
+    const h = parseInt(m[1],10) || 0;
+    const mm = parseInt(m[2],10) || 0;
+    const ss = m[3] ? (parseInt(m[3],10) || 0) : 0;
+    return (h*60) + mm + (ss/60);
+  }
+
+  // 2) DateTime Excel XML: YYYY-MM-DDTHH:MM:SS(.sss)
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?$/);
+  if(m){
+    const Y = parseInt(m[1],10), Mo = parseInt(m[2],10), D = parseInt(m[3],10);
+    const h = parseInt(m[4],10), mi = parseInt(m[5],10), se = parseInt(m[6],10);
+    // Base usada por el XML para 0:00 suele ser 1899-12-31T00:00:00.000 (ver PE-04)
+    const base = Date.UTC(1899, 11, 31, 0, 0, 0);
+    const dt = Date.UTC(Y, (Mo||1)-1, D||1, h||0, mi||0, se||0);
+    const diff = (dt - base) / 60000;
+    return isFinite(diff) && diff > 0 ? diff : 0;
+  }
+
+  // 3) Numérico (horas decimales / fracción de día)
+  const cleaned = s.replace(/,/g, ".");
+  const n = Number(cleaned);
+  if(!isFinite(n)) return 0;
+
+  // Heurística:
+  // - Si es fracción pequeña (0 < n < 3) y parece valor de Excel (ej. 0.8326 = 19:59), tratar como días
+  // - En caso contrario, tratar como horas decimales
+  if(n > 0 && n < 3 && cleaned.includes(".")){
+    return n * 24 * 60;
+  }
+  return n * 60;
 }
 
 function pruneZeroColumns(columns, data){
@@ -10897,19 +11405,38 @@ function buildWhatsAppLink(telMovil, message){
   return url;
 }
 
-async function loadDF03Files(files){
+async function loadDF03Files(files, opts){
+  opts = opts || {};
+  const append = !!opts.append;
+  const label = opts.label || "";
+
   if(DF03_STATE.loading) return;
   DF03_STATE.loading = true;
-  DF03_STATE.loaded = false;
-  DF03_STATE.fichasMap = new Map();
-  DF03_STATE.headerIdx = null;
+  if(!append){
+    DF03_STATE.loaded = false;
+    DF03_STATE.fichasMap = new Map();
+    DF03_STATE.headerIdx = null;
+    DF03_STATE.loadedFileMeta = [];
+    DF03_STATE.totalRowsCount = 0;
+  }
+  if(!DF03_STATE.loadedFileMeta) DF03_STATE.loadedFileMeta = [];
+  if(DF03_STATE.totalRowsCount === undefined || DF03_STATE.totalRowsCount === null) DF03_STATE.totalRowsCount = 0;
 
 
   // UI
   setFAConsultaEnabled(false);
-  renderDF03FileChips(files);
-  clearFAMsg();
-  showFAMsg("Procesando DF-03. En archivos grandes, el navegador puede tardar unos minutos.", false);
+  // Track archivos cargados (para chips)
+  try{
+    for(const f of (files||[])){
+      const nm = (f && f.name) ? String(f.name) : "";
+      if(!nm) continue;
+      if(!DF03_STATE.loadedFileMeta.some(x => x.name === nm)) DF03_STATE.loadedFileMeta.push({name:nm, size:(f.size||0)});
+    }
+  }catch(e){}
+
+  renderDF03FileChips(DF03_STATE.loadedFileMeta);
+  if(!append) clearFAMsg();
+  showFAMsg((label ? ("Procesando " + label + ". ") : "Procesando DF-03. ") + "En archivos grandes, el navegador puede tardar unos minutos.", false);
 
   const totalBytes = files.reduce((s,f)=> s + (f.size || 0), 0) || 1;
   let bytesRead = 0;
@@ -10935,7 +11462,8 @@ async function loadDF03Files(files){
 DF03_STATE.lastResultCount = 0;
       refreshNavBadges();
 
-  updateDF03Pill(files.length, rowsCount);
+  DF03_STATE.totalRowsCount += (rowsCount || 0);
+  updateDF03Pill((DF03_STATE.loadedFileMeta||[]).length, DF03_STATE.totalRowsCount || 0);
   showFAMsg(`✅ DF-03 cargado: ${DF03_STATE.fichasMap.size} fichas indexadas.`, false);
   setDF03Progress(100, "Listo");
   setFAConsultaEnabled(true);
