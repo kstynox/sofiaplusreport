@@ -785,6 +785,11 @@ tr:hover{background:#f1f5f9}
 }
 .dash-inline-filters .dash-search{ flex: 1 1 520px; min-width: 320px; }
 .dash-inline-filters .dash-year-dd{ flex: 0 0 180px; width: 180px; }
+.dash-inline-filters .dash-date-range{ flex: 1 1 340px; min-width: 320px; }
+.dash-inline-filters .dash-date-range .date-field{ min-width: 150px; }
+@media (max-width: 700px){
+  .dash-inline-filters .dash-date-range{ flex: 1 1 240px; min-width: 240px; }
+}
 @media (max-width: 700px){
   .dash-inline-filters .dash-year-dd{ flex: 1 1 240px; width: auto; }
 }
@@ -2855,6 +2860,47 @@ body.reports-mode #faAprTools{
   .emp-split{ flex-direction:column; }
   .emp-chart-wrap canvas{ height:240px !important; }
 }
+/* --- Controles de rango de fechas (r14/r15) --- */
+.date-range{
+  display:flex;
+  gap:10px;
+  align-items:flex-end;
+}
+.date-field{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  min-width:150px;
+}
+.date-field label{
+  font-size:11px;
+  color:var(--muted);
+  line-height:1;
+}
+.date-field input{
+  height:40px;
+  border:1px solid rgba(2,6,23,.10);
+  border-radius:10px;
+  padding:0 10px;
+  font-size:13px;
+  color:var(--text);
+  background:#fff;
+}
+.sync-msg{
+  margin-top:10px;
+  padding:8px 10px;
+  border-radius:10px;
+  font-size:12px;
+  border:1px solid rgba(59,130,246,.25);
+  background:rgba(59,130,246,.08);
+  color:#0f172a;
+}
+@media (max-width: 900px){
+  .tools-top{ flex-direction:column; align-items:stretch; }
+  .date-range{ width:100%; flex-wrap:wrap; }
+  .date-field{ flex:1; min-width:170px; }
+}
+
 </style>
 </head>
 <body>
@@ -2920,20 +2966,21 @@ body.reports-mode #faAprTools{
 <p style="color:var(--muted); margin-bottom:14px">
         Selecciona los siguientes <b>6 reportes</b> descargados de SofíaPlus. Se consolidarán automáticamente (5 XML + 1 Excel).
         Recomendación: exportar los reportes con rango de los <b>últimos 2 años</b>.
-      </p>
+        <br><b>Excel adicional:</b> informeGeneralInstructores.xls (Virtual).</p>
 <ul class="expected-files">
 <li><strong>PE-04_ PROGRAMACIÓN ESPECÍFICA DE CURSOS LARGOS, ESPECIALES Y EVENTOS POR REGIONAL Y CENTRO</strong> (XML · se recomienda últimos 2 años)</li>
 <li><strong>DF-14A_MATRICULADOS_RESUMEN_POR_FICHA</strong> (XML)</li>
 <li><strong>DF-53_ CONSOLIDADO_FICHAS_CON_Y_SIN_PROGRAMACION_ESPECIFICA (EVENTOS)</strong> (XML)</li>
 <li><strong>DF-51_CONSOLIDADO_DE_FICHAS_CON_O_SIN_RUTA</strong> (XML)</li>
 <li><strong>DF-49_REPORTE_CONSOLIDADO_DE_APRENDICES_POR_FICHA</strong> (XML)</li>
+  <li><strong>informeGeneralInstructores.xls</strong> (Excel · Virtual)</li>
 </ul>
 <p style="color:var(--muted); margin:0 0 20px 0; font-size:12px">
         La lista de chequeo se actualizará al seleccionar archivos e indicará si falta alguno.
       </p>
 <div class="upload-area">
 <input accept=".xml,.xls,.xlsx" id="fileInput" multiple="" onchange="handleFiles()" style="display:none" type="file"/>
-<button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">Seleccionar Archivos</button>
+<button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">Seleccionar / Agregar Archivos</button>
 
 <div id="driveFolderWrap" style="margin-top:10px; width:100%; display:flex; flex-direction:column; align-items:center;">
   <div style="font-size:12px; color:var(--muted); margin-bottom:6px; text-align:center;">Carpeta Drive pública (URL o ID)</div>
@@ -2948,6 +2995,7 @@ body.reports-mode #faAprTools{
 
 
 <p id="fileCount" style="margin-top:10px; font-size:13px"></p>
+<div id="selectedFilesList" class="selected-files" style="margin-top:8px; font-size:12px; color:var(--muted)"></div>
 <div aria-live="polite" class="checklist" id="requiredChecklist"></div>
 <div id="progressContainer">
 <label>Procesando...</label>
@@ -3045,6 +3093,17 @@ body.reports-mode #faAprTools{
 </span>
 <input autocomplete="off" id="tableSearch" placeholder="Buscar por número de ficha, programa o código..." type="text"/>
 </div>
+<div class="date-range" id="dateRangeControls" style="display:none">
+  <div class="date-field">
+    <label for="dateStartInput">Fecha inicio</label>
+    <input id="dateStartInput" type="date" autocomplete="off"/>
+  </div>
+  <div class="date-field">
+    <label for="dateEndInput">Fecha fin</label>
+    <input id="dateEndInput" type="date" autocomplete="off"/>
+  </div>
+</div>
+
 <details class="year-dd" id="yearDropdown">
 <summary id="yearSummary">
 <span class="year-s-left">
@@ -3066,6 +3125,7 @@ body.reports-mode #faAprTools{
 </details>
 </div>
 <div class="tools-divider"></div>
+<div id="yearDateSyncMsg" class="sync-msg" role="status" aria-live="polite" style="display:none"></div>
 <div class="filters-block" id="nivelBlock">
 <div class="filters-head">
 <div class="filters-label">NIVEL DE FORMACIÓN</div>
@@ -3164,7 +3224,17 @@ body.reports-mode #faAprTools{
 </svg></span>
         <input id="dashSearch" type="search" placeholder="Buscar ficha, programa, responsable..." autocomplete="off"/>
       </div>
-      <details class="year-dd dash-year-dd" id="dashYearDropdown">
+            <div class="date-range dash-date-range" id="dashDateRangeControls">
+        <div class="date-field">
+          <label for="dashDateStartInput">Fecha inicio</label>
+          <input id="dashDateStartInput" type="date" autocomplete="off"/>
+        </div>
+        <div class="date-field">
+          <label for="dashDateEndInput">Fecha fin</label>
+          <input id="dashDateEndInput" type="date" autocomplete="off"/>
+        </div>
+      </div>
+<details class="year-dd dash-year-dd" id="dashYearDropdown">
             <summary id="dashYearSummary">
               <span class="year-s-left">
                 <span aria-hidden="true" class="icon"><svg fill="none" height="18" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18">
@@ -3179,6 +3249,8 @@ body.reports-mode #faAprTools{
             </summary>
             <div class="year-panel" id="dashYearOptions"></div>
           </details>
+      <div id="dashYearDateSyncMsg" class="sync-msg" role="status" aria-live="polite" style="display:none"></div>
+
     </div>
 
     <div id="dashActiveFilters" class="dash-pills" style="display:none"></div>
@@ -3280,7 +3352,7 @@ body.reports-mode #faAprTools{
             <table class="dash-table" id="dashTblCrit">
               <thead>
                 <tr>
-                  <th>Ficha</th><th>Estado</th><th>Municipio</th><th>Programa</th><th>Responsable</th>
+                  <th>Ficha</th><th>Fecha Inicio</th><th>Fecha Fin</th><th>Estado</th><th>Municipio</th><th>Programa</th><th>Responsable</th>
                   <th class="num">Días Atraso</th><th class="num">Matriculados</th><th class="num">Activos</th>
                   <th class="num">Sin Ruta</th><th class="num">Sin Juicio</th><th class="num">Novedades</th>
                   <th class="num">En Tránsito</th><th class="num">En Inducción</th><th class="num">En Formación</th>
@@ -4515,6 +4587,180 @@ function applyYearFilter(rows, reportId){
   });
 }
 
+/* =========================================================
+   FILTRO POR RANGO DE FECHAS (solo r14/r15) + sincronización Años <-> Fechas
+   ========================================================= */
+const DATE_RANGE_REPORTS = new Set(["r14","r15"]);
+const DATE_RANGE_BY_REPORT = {}; // { [reportId]: { start: Date|null, end: Date|null } }
+
+function dateOnly(dt){
+  if(!dt || !(dt instanceof Date) || isNaN(dt.getTime())) return null;
+  return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+}
+
+function formatISODate(dt){
+  const d = dateOnly(dt);
+  if(!d) return "";
+  const yy = String(d.getFullYear()).padStart(4,"0");
+  const mm = String(d.getMonth()+1).padStart(2,"0");
+  const dd = String(d.getDate()).padStart(2,"0");
+  return `${yy}-${mm}-${dd}`;
+}
+
+function parseDateInput(v){
+  const s = String(v ?? "").trim();
+  if(!s) return null;
+  return dateOnly(parseDateLoose(s));
+}
+
+function yearsToDateRange(selectedYears){
+  const yrs = (selectedYears || []).map(y => parseInt(String(y),10)).filter(y => isFinite(y));
+  if(!yrs.length) return {start:null, end:null};
+  const minY = Math.min(...yrs);
+  const maxY = Math.max(...yrs);
+  return { start: new Date(minY,0,1), end: new Date(maxY,11,31) };
+}
+
+function dateRangeToYears(start, end){
+  let s = dateOnly(start);
+  let e = dateOnly(end);
+  if(!s || !e) return [];
+  if(s > e){ const t=s; s=e; e=t; }
+  const lo = s.getFullYear();
+  const hi = e.getFullYear();
+  const out = [];
+  for(let y=lo; y<=hi; y++) out.push(String(y));
+  return out;
+}
+
+function getDateRange(reportId){
+  const rid = reportId || ACTIVE_REPORT_ID;
+  if(!DATE_RANGE_BY_REPORT[rid]) DATE_RANGE_BY_REPORT[rid] = {start:null, end:null};
+  return DATE_RANGE_BY_REPORT[rid];
+}
+
+function setDateRange(reportId, start, end){
+  const rid = reportId || ACTIVE_REPORT_ID;
+  DATE_RANGE_BY_REPORT[rid] = { start: dateOnly(start), end: dateOnly(end) };
+}
+
+function showYearDateSyncMessage(msg){
+  const el = document.getElementById("yearDateSyncMsg");
+  if(!el) return;
+  if(!msg){
+    el.textContent = "";
+    el.style.display = "none";
+    return;
+  }
+  el.textContent = msg;
+  el.style.display = "block";
+  try{
+    clearTimeout(el._hideTm);
+    el._hideTm = setTimeout(()=>{ el.style.display="none"; }, 6500);
+  }catch(e){}
+}
+
+function updateDateRangeControlsUI(){
+  const wrap = document.getElementById("dateRangeControls");
+  const a = document.getElementById("dateStartInput");
+  const b = document.getElementById("dateEndInput");
+  if(!wrap || !a || !b) return;
+
+  const enabled = DATE_RANGE_REPORTS.has(ACTIVE_REPORT_ID);
+  wrap.style.display = enabled ? "flex" : "none";
+  if(!enabled){
+    a.value = "";
+    b.value = "";
+    showYearDateSyncMessage("");
+    return;
+  }
+
+  const dr = getDateRange(ACTIVE_REPORT_ID);
+  a.value = formatISODate(dr.start);
+  b.value = formatISODate(dr.end);
+}
+
+function applyDateRangeFilter(rows, reportId){
+  const rid = reportId || ACTIVE_REPORT_ID;
+  if(!DATE_RANGE_REPORTS.has(rid)) return rows;
+
+  const dr = getDateRange(rid);
+  if(!dr || !dr.start || !dr.end) return rows;
+
+  let start = dateOnly(dr.start);
+  let end = dateOnly(dr.end);
+  if(!start || !end) return rows;
+  if(start > end){ const tmp = start; start = end; end = tmp; }
+
+  return (rows || []).filter(r => {
+    // Si no hay fecha, no excluir (evita regresiones)
+    // Regla: filtrar principalmente por fecha de inicio; si falta, usar fecha fin como respaldo.
+    const dStart = dateOnly(parseDateLoose((r?.fechaInicioRaw || r?.fechaInicio || "")));
+    const dEnd   = dateOnly(parseDateLoose((r?.fechaFinRaw   || r?.fechaFin   || "")));
+    const d = dStart || dEnd;
+    if(!d) return true;
+    return d >= start && d <= end;
+  });
+}
+
+function syncYearsAndDates(trigger){
+  const rid = ACTIVE_REPORT_ID;
+  if(!DATE_RANGE_REPORTS.has(rid)) return;
+
+  const ySet = getYearFilters(rid);
+  const selected = ySet ? Array.from(ySet).map(String) : [];
+  const dr = getDateRange(rid);
+
+  if(trigger === "years"){
+    const rng = yearsToDateRange(selected);
+    setDateRange(rid, rng.start, rng.end);
+
+    const inc = dateRangeToYears(rng.start, rng.end);
+    const incSet = new Set(inc);
+    const selSet = new Set(selected);
+    const changed = inc.some(y => !selSet.has(y));
+
+    if(changed){
+      setYearFilters(rid, incSet);
+      showYearDateSyncMessage(`Debido al rango de las fechas se actualizará el campo de años a: ${inc.join(", ")}`);
+      renderYearDropdown();
+    }else{
+      showYearDateSyncMessage("");
+    }
+
+    updateDateRangeControlsUI();
+    setActiveReport(rid);
+    refreshNavBadges();
+    return;
+  }
+
+  if(trigger === "dates"){
+    // Normaliza y asegura start<=end
+    let s = dr.start, e = dr.end;
+    if(s && e && s > e){ const t=s; s=e; e=t; setDateRange(rid, s, e); }
+
+    const inc = dateRangeToYears(getDateRange(rid).start, getDateRange(rid).end);
+    if(!inc.length) return;
+
+    const incSet = new Set(inc);
+    const selSet = new Set(selected);
+    const changed = (inc.length !== selected.length) || inc.some(y => !selSet.has(y));
+
+    if(changed){
+      setYearFilters(rid, incSet);
+      showYearDateSyncMessage(`Debido al rango de las fechas se actualizará el campo de años a: ${inc.join(", ")}`);
+      renderYearDropdown();
+    }else{
+      showYearDateSyncMessage("");
+    }
+
+    updateDateRangeControlsUI();
+    setActiveReport(rid);
+    refreshNavBadges();
+  }
+}
+
+
 function buildYearOptions(config, reportId){
   const rid = reportId || ACTIVE_REPORT_ID;
   // Opciones de años se construyen SIN aplicar el filtro de años (para permitir cambiar)
@@ -4581,8 +4827,12 @@ function renderYearDropdown(){
 
       setYearFilters(ACTIVE_REPORT_ID, newSet);
       updateSummary();
-      setActiveReport(ACTIVE_REPORT_ID);
-      refreshNavBadges();
+      if(typeof DATE_RANGE_REPORTS !== "undefined" && DATE_RANGE_REPORTS.has(ACTIVE_REPORT_ID)){
+        syncYearsAndDates("years");
+      }else{
+        setActiveReport(ACTIVE_REPORT_ID);
+        refreshNavBadges();
+      }
     });
   });
 }
@@ -4647,7 +4897,15 @@ function applySearchFilter(rows, config, reportId, searchQ){
 
 // Compat: ambos filtros sobre filas detalladas (no agregadas)
 function applyViewFilters(rows, config, reportId, searchQ){
-  return applySearchFilter(applyProgEspFilter(applyNivelFilter(applyYearFilter(rows, reportId), reportId), reportId), config, reportId, searchQ);
+  return applySearchFilter(
+    applyProgEspFilter(
+      applyNivelFilter(
+        applyDateRangeFilter(
+          applyYearFilter(rows, reportId),
+        reportId),
+      reportId),
+    reportId),
+  config, reportId, searchQ);
 }
 
 // Base rows del reporte (antes de agregaciones)
@@ -4750,7 +5008,7 @@ function applyEstadoExclusion(rows, reportId){
 
 function getViewModel(config, reportId, searchQ){
   const rid = reportId || ACTIVE_REPORT_ID;
-  let base = applyProgEspFilter(applyNivelFilter(applyYearFilter(getBaseRows(config), rid), rid), rid);
+  let base = applyProgEspFilter(applyNivelFilter(applyDateRangeFilter(applyYearFilter(getBaseRows(config), rid), rid), rid), rid);
   base = applyEstadoExclusion(base, rid);
 
   if(typeof config.data === "function"){
@@ -5074,7 +5332,13 @@ const REQUIRED_UPLOADS = [
   { id: "DF-14A", key: "df14a", label: "DF-14A_MATRICULADOS_RESUMEN_POR_FICHA", hint: "XML" },
   { id: "DF-53",  key: "df53",  label: "DF-53_ CONSOLIDADO_FICHAS_CON_Y_SIN_PROGRAMACION_ESPECIFICA (EVENTOS)", hint: "XML" },
   { id: "DF-51",  key: "df51",  label: "DF-51_CONSOLIDADO_DE_FICHAS_CON_O_SIN_RUTA", hint: "XML" },
-  { id: "DF-49",  key: "df49",  label: "DF-49_REPORTE_CONSOLIDADO_DE_APRENDICES_POR_FICHA", hint: "XML" }
+  { id: "DF-49",  key: "df49",  label: "DF-49_REPORTE_CONSOLIDADO_DE_APRENDICES_POR_FICHA", hint: "XML" },
+  {
+    id: "IGI",
+    key: "informegeneralinstructores",
+    label: "informeGeneralInstructores.xls (Virtual)",
+    hint: "Excel"
+  }
 ];
 
 function normFileKey(s){
@@ -5099,17 +5363,22 @@ function evaluateRequiredUploads(files){
   const items = REQUIRED_UPLOADS.map(req => {
     let found = false;
     let matchedName = "";
+    let matchCount = 0;
+    let matchedNames = [];
 
     for(let i=0; i<norms.length; i++){
       const n = norms[i];
       const ok = (typeof req.matcher === "function") ? !!req.matcher(n) : n.includes(req.key);
       if(ok){
-        found = true;
-        matchedName = names[i] || "";
-        break;
+        matchCount++;
+        matchedNames.push(names[i] || "");
+        if(!found){
+          found = true;
+          matchedName = names[i] || "";
+        }
       }
     }
-    return {req, found, matchedName};
+    return {req, found, matchedName, matchCount, matchedNames};
   });
 
   const foundCount = items.filter(x => x.found).length;
@@ -5130,15 +5399,28 @@ function renderRequiredChecklist(files){
   const itemsHtml = st.items.map(it => {
     const statusClass = hasFiles ? (it.found ? "ok" : "miss") : "pending";
     const statusText  = hasFiles ? (it.found ? "OK" : "FALTA") : "PENDIENTE";
-    const hint = it.found
-      ? `Coincide: ${escapeHtml(it.matchedName || "")}`
-      : (it.req.hint || "");
 
-    return `
-      <li class="check-item">
-        <div>
+    let hint = "";
+    if(!hasFiles){
+      hint = it.req.hint || "";
+    }else{
+      if(it.found){
+        if(it.req.key === "pe04" && (it.matchCount || 0) > 1){
+          const shown = (it.matchedNames || []).slice(0,3).filter(Boolean);
+          const extra = Math.max(0, (it.matchCount||0) - shown.length);
+          hint = `Coinciden: ${shown.map(escapeHtml).join(", ")}${extra ? ` (+${extra} más)` : ""}`;
+        }else{
+          hint = `Coincide: ${escapeHtml(it.matchedName || "")}`;
+        }
+      }else{
+        hint = `Falta: ${escapeHtml(it.req.hint || "")}`;
+      }
+    }
+
+    return `<li class="check-item">
+        <div class="check-left">
           <div class="check-name">${escapeHtml(it.req.label)}</div>
-          <div class="check-hint">${escapeHtml(hint)}</div>
+          <div class="check-hint">${hint}</div>
         </div>
         <span class="check-status ${statusClass}">${statusText}</span>
       </li>`;
@@ -5163,27 +5445,99 @@ function warnIfMissingUploads(files){
   return window.confirm(msg);
 }
 
+// =========================
+// Selección persistente (permite agregar varios PE-04 en diferentes selecciones)
+// - PE-04: se acumula (2, 3 o más archivos)
+// - Otros requeridos: se reemplaza el anterior para evitar duplicados
+// =========================
+let SELECTED_FILES = [];
+
+function fileSig(f){
+  try{ return `${f.name||""}|${f.size||0}|${f.lastModified||0}`; }catch(e){ return String(Math.random()); }
+}
+
+function addSelectedFiles(fileList){
+  const incoming = Array.from(fileList || []);
+  incoming.forEach(f => {
+    if(!f) return;
+    const sig = fileSig(f);
+    if(SELECTED_FILES.some(x => fileSig(x) === sig)) return;
+
+    const src = detectSource(f.name || "");
+    if(src !== "PE04"){
+      // Reemplaza el archivo previo del mismo tipo (DF14A/DF49/DF51/DF53/IGI), evita duplicados por error de usuario
+      SELECTED_FILES = SELECTED_FILES.filter(x => detectSource(x.name || "") !== src);
+    }
+    SELECTED_FILES.push(f);
+  });
+}
+
+function getSelectedFiles(){
+  if(SELECTED_FILES && SELECTED_FILES.length) return SELECTED_FILES.slice();
+  const inputEl = document.getElementById("fileInput");
+  return Array.from((inputEl && inputEl.files) ? inputEl.files : []);
+}
+
+function renderSelectedFilesList(){
+  const el = document.getElementById("selectedFilesList");
+  if(!el) return;
+  const files = getSelectedFiles();
+  if(!files.length){
+    el.innerHTML = "";
+    return;
+  }
+  // Conteo por tipo
+  const counts = {};
+  files.forEach(f => {
+    const k = detectSource(f.name || "");
+    counts[k] = (counts[k]||0) + 1;
+  });
+  const pe04n = counts["PE04"] || 0;
+  const extra = pe04n > 1 ? ` (PE-04: ${pe04n} archivos, se consolidan y se eliminan duplicados por Ficha)` : "";
+
+  const names = files.map(f => escapeHtml(f.name || "")).slice(0,8);
+  const more = Math.max(0, files.length - names.length);
+
+  el.innerHTML = `<div><b>${files.length}</b> archivo(s) en cola${extra}</div>` +
+                 `<div style="margin-top:4px">${names.join("<br>")}${more ? `<br>... y ${more} más` : ""}</div>`;
+}
+
 function handleFiles(){
-  const files = document.getElementById("fileInput").files;
+  const inputEl = document.getElementById("fileInput");
+  const files = (inputEl && inputEl.files) ? Array.from(inputEl.files) : [];
   const btn = document.getElementById("btnParse");
   const count = document.getElementById("fileCount");
-  
-  if(files.length > 0){
-    count.textContent = `${files.length} archivo(s) seleccionado(s)`;
+
+  if(files.length){
+    addSelectedFiles(files);
+  }
+
+  const all = getSelectedFiles();
+
+  if(all.length > 0){
+    count.textContent = `${all.length} archivo(s) seleccionado(s)`;
     btn.classList.remove("hidden");
   } else {
     count.textContent = "";
     btn.classList.add("hidden");
   }
 
-  // Lista de chequeo (Ajuste 1)
-  renderRequiredChecklist(files);
+  renderSelectedFilesList();
+
+  // Lista de chequeo
+  renderRequiredChecklist(all);
+
+  // Permite re-seleccionar el mismo archivo en una selección posterior
+  try{ if(inputEl) inputEl.value = ""; }catch(e){}
 }
 
 // Ajuste 5: Carga con barra de progreso
 async function processFiles(filesOverride){
   const inputEl = document.getElementById("fileInput");
-  const files = filesOverride ? Array.from(filesOverride) : Array.from((inputEl && inputEl.files) ? inputEl.files : []);
+  const base = (typeof SELECTED_FILES !== "undefined" && SELECTED_FILES && SELECTED_FILES.length)
+    ? SELECTED_FILES
+    : Array.from((inputEl && inputEl.files) ? inputEl.files : []);
+  const files = filesOverride ? Array.from(filesOverride) : Array.from(base);
   if(!files.length) return;
 
   // Lista de chequeo (Ajuste 1)
@@ -5470,6 +5824,7 @@ if(_srcTag === "DF14A"){
       const programa = stripBolNauticoPrefix(cellText(dense[26]));      // AA (NOMBRE_PROGRAMA_FORMACION)
       const departamentoCurso = cellText(dense[30]);   // AE (NOMBRE_DEPARTAMENTO_CURSO)
       const municipio = cellText(dense[32]);   // AG (NOMBRE_MUNICIPIO_CURSO)
+      const estado = cellText(dense[6]);       // G (ESTADO_CURSO)
       const horasPlanta = parseHoursLoose(cellText(dense[idxHorasPlanta]));        // HORAS_PLANTA (AR por defecto) -> minutos
       const horasContratistas = parseHoursLoose(cellText(dense[idxHorasContratistas]));  // HORAS_CONTRATISTAS (AS por defecto) -> minutos
       const totalHoras = parseHoursLoose(cellText(dense[idxTotalHoras]));              // TOTAL_HORAS (AW por defecto) -> minutos
@@ -5496,7 +5851,7 @@ if(_srcTag === "DF14A"){
       if(!modalidad && !responsable && !nivel && !tipo && !etapa && !programaEspecial && !fechaInicioRaw) continue;
 
       out.push({ 
-        ficha, empresa, programa, nivel, tipo, etapa, modalidad, responsable, horasTotal, horasPlanta, horasContratistas, departamentoCurso, municipio, 
+        ficha, estado, empresa, programa, nivel, tipo, etapa, modalidad, responsable, horasTotal, horasPlanta, horasContratistas, departamentoCurso, municipio, 
         programaEspecial,
         // KPIs (Matriculados) + desglose por género
         matriculados,
@@ -6399,6 +6754,18 @@ if(id === "dashboard"){
   renderNivelButtons();
   renderProgEspButtons();
   renderYearDropdown();
+  // DateRange init for r14/r15
+  try{
+    if(typeof DATE_RANGE_REPORTS !== "undefined" && DATE_RANGE_REPORTS.has(id)){
+      const ys = Array.from(getYearFilters(id) || []);
+      const dr = (typeof getDateRange === "function") ? getDateRange(id) : null;
+      if(ys.length){
+        const rng = yearsToDateRange(ys);
+        if(dr && (!dr.start || !dr.end)) setDateRange(id, rng.start, rng.end);
+      }
+    }
+    if(typeof updateDateRangeControlsUI === "function") updateDateRangeControlsUI();
+  }catch(e){}
   applyCompactMode();
 
   if(id === "r19"){
@@ -7243,10 +7610,126 @@ function dashRenderYearDropdown(){
       const checkedYears = Array.from(panel.querySelectorAll('input[type="checkbox"][data-year]')).filter(x => x.checked).map(x => x.getAttribute('data-year'));
       DASH_STATE.filters.year = new Set(checkedYears.map(String));
       updateSummary();
-      dashRender();
-  try{ setTimeout(()=>{ const c = (DASH_STATE && DASH_STATE.charts) ? DASH_STATE.charts.empresaPie : null; if(c && typeof c.resize==='function'){ c.resize(); c.update(); } }, 80); }catch(e){}
+      dashSyncYearsAndDates("years");
+try{ setTimeout(()=>{ const c = (DASH_STATE && DASH_STATE.charts) ? DASH_STATE.charts.empresaPie : null; if(c && typeof c.resize==='function'){ c.resize(); c.update(); } }, 80); }catch(e){}
     });
   });
+}
+
+
+
+/* =========================================================
+   DASHBOARD: Filtro por rango de fechas + sync Años <-> Fechas
+   Usa fechaInicio (PE-04) como fecha base para filtrar
+   ========================================================= */
+function dashGetDateRange(){
+  return { start: dateOnly(DASH_STATE.dateStart), end: dateOnly(DASH_STATE.dateEnd) };
+}
+function dashSetDateRange(start, end){
+  DASH_STATE.dateStart = dateOnly(start);
+  DASH_STATE.dateEnd = dateOnly(end);
+}
+
+function dashYearsToDateRange(selectedYears){
+  const yrs = (selectedYears || []).map(y => parseInt(String(y),10)).filter(y => isFinite(y));
+  if(!yrs.length) return {start:null, end:null};
+  const minY = Math.min(...yrs);
+  const maxY = Math.max(...yrs);
+  return { start: new Date(minY,0,1), end: new Date(maxY,11,31) };
+}
+
+function dashDateRangeToYears(start, end){
+  let s = dateOnly(start);
+  let e = dateOnly(end);
+  if(!s || !e) return [];
+  const lo = Math.min(s.getFullYear(), e.getFullYear());
+  const hi = Math.max(s.getFullYear(), e.getFullYear());
+  const out = [];
+  for(let y=lo; y<=hi; y++) out.push(String(y));
+  return out;
+}
+
+function dashShowYearDateSyncMessage(msg){
+  const el = document.getElementById("dashYearDateSyncMsg");
+  if(!el) return;
+  if(!msg){
+    el.textContent = "";
+    el.style.display = "none";
+    return;
+  }
+  el.textContent = msg;
+  el.style.display = "block";
+  try{
+    clearTimeout(el._hideTm);
+    el._hideTm = setTimeout(()=>{ el.style.display="none"; }, 6500);
+  }catch(e){}
+}
+
+function dashUpdateDateRangeControlsUI(){
+  const a = document.getElementById("dashDateStartInput");
+  const b = document.getElementById("dashDateEndInput");
+  if(!a || !b) return;
+  a.value = formatISODate(DASH_STATE.dateStart);
+  b.value = formatISODate(DASH_STATE.dateEnd);
+}
+
+function dashSyncYearsAndDates(trigger, silent, skipRender){
+  if(!DASH_STATE || !DASH_STATE.filters) return;
+  const selSet = DASH_STATE.filters.year || new Set();
+  const selected = Array.from(selSet).map(String);
+
+  if(trigger === "years"){
+    if(!selected.length){
+      dashSetDateRange(null, null);
+      dashUpdateDateRangeControlsUI();
+      if(!silent) dashShowYearDateSyncMessage("");
+      if(!skipRender){ dashOnFiltersChanged(); }
+    return;
+    }
+    const rng = dashYearsToDateRange(selected);
+    dashSetDateRange(rng.start, rng.end);
+
+    const inc = dashDateRangeToYears(rng.start, rng.end);
+    const incSet = new Set(inc);
+    const changed = inc.some(y => !selSet.has(y)) || (inc.length !== selected.length);
+
+    if(changed){
+      DASH_STATE.filters.year = incSet;
+      if(!silent) dashShowYearDateSyncMessage(`Debido al rango de las fechas se actualizará el campo de años a: ${inc.join(", ")}`);
+      dashRenderYearDropdown();
+    }else{
+      if(!silent) dashShowYearDateSyncMessage("");
+    }
+
+    dashUpdateDateRangeControlsUI();
+    if(!skipRender){ dashOnFiltersChanged(); }
+    return;
+  }
+
+  if(trigger === "dates"){
+    const dr = dashGetDateRange();
+    if(!dr.start || !dr.end){
+      if(!silent) dashShowYearDateSyncMessage("");
+      dashUpdateDateRangeControlsUI();
+      if(!skipRender){ dashOnFiltersChanged(); }
+    return;
+    }
+    const inc = dashDateRangeToYears(dr.start, dr.end);
+    if(!inc.length) return;
+
+    const incSet = new Set(inc);
+    const changed = (inc.length !== selected.length) || inc.some(y => !selSet.has(y));
+    if(changed){
+      DASH_STATE.filters.year = incSet;
+      if(!silent) dashShowYearDateSyncMessage(`Debido al rango de las fechas se actualizará el campo de años a: ${inc.join(", ")}`);
+      dashRenderYearDropdown();
+    }else{
+      if(!silent) dashShowYearDateSyncMessage("");
+    }
+
+    dashUpdateDateRangeControlsUI();
+    if(!skipRender){ dashOnFiltersChanged(); }
+    }
 }
 
 
@@ -7435,6 +7918,7 @@ function dashOnFiltersChanged(){
   try{
     DASH_STATE.critPage = 1;
     DASH_STATE.muniPage = 1;
+    DASH_STATE.aprPage = 1;
   }catch(e){}
   dashBumpRev();
   dashRequestRender();
@@ -7485,6 +7969,8 @@ let DASH_STATE = {
   yearOverlayDone: false,
   yearPicked: false,
   search: "",
+  dateStart: null,
+  dateEnd: null,
   mapMetric: "fichas",
   filters: {
     estado: new Set(),
@@ -7616,6 +8102,27 @@ function dashPassFilters(row, exceptKey){
       if(!hay.includes(t)) return false;
     }
   }
+  // Filtro por rango de fechas (prioriza fechaInicio; no excluye por fechaFin posterior)
+  {
+    let s = dateOnly(DASH_STATE.dateStart);
+    let e = dateOnly(DASH_STATE.dateEnd);
+    if(s || e){
+      if(s && e && s > e){ const tmp = s; s = e; e = tmp; }
+
+      const dStart = dateOnly(parseDateLoose(((row?.fechaInicioRaw || row?.fechaInicio) ?? "")));
+      const dEnd   = dateOnly(parseDateLoose(((row?.fechaFinRaw   || row?.fechaFin)   ?? "")));
+
+      // Regla: se filtra principalmente por la fecha de inicio de la ficha.
+      // - Si la ficha inicia dentro del rango, se incluye aunque su fecha fin sea posterior al fin del filtro.
+      // - Si falta fechaInicio, se usa fechaFin solo como respaldo (evita excluir por fin posterior).
+      const d = dStart || dEnd;
+      if(d){
+        if(s && d < s) return false;
+        if(e && d > e) return false;
+      }
+    }
+  }
+
   // (Segmentación rápida removida por requerimiento)
   // Filtros por dimensión
   for(const dim of DASH_DIMS){
@@ -7656,6 +8163,11 @@ function dashGetFilteredBundle(){
   const dims = DASH_DIMS || [];
 
   const full = [];
+  // Pre-cálculo rango de fechas (Dashboard): prioriza fechaInicio; si falta usa fechaFin como respaldo
+  const __dr = dashGetDateRange();
+  let __ds = __dr.start, __de = __dr.end;
+  if(__ds && __de && __ds > __de){ const __t = __ds; __ds = __de; __de = __t; }
+
   const failOnly = Object.create(null);
   for(const dim of dims){ failOnly[dim.key] = []; }
 
@@ -7668,6 +8180,18 @@ function dashGetFilteredBundle(){
         if(!hay.includes(t)){ ok = false; break; }
       }
       if(!ok) continue;
+    }
+
+
+    // Filtro por rango de fechas (global): evalúa principalmente la fecha de inicio de la ficha
+    if(__ds || __de){
+      const dStart = dateOnly(parseDateLoose(((row?.fechaInicioRaw || row?.fechaInicio) ?? "")));
+      const dEnd   = dateOnly(parseDateLoose(((row?.fechaFinRaw   || row?.fechaFin)   ?? "")));
+      const d = dStart || dEnd;
+      if(d){
+        if(__ds && d < __ds) continue;
+        if(__de && d > __de) continue;
+      }
     }
 
     let failKey = null;
@@ -7792,12 +8316,41 @@ function dashClearFilter(key){
 }
 
 function dashResetAll(){
+  // Reset filtros base
   DASH_STATE.search = "";
   Object.keys(DASH_STATE.filters).forEach(k => DASH_STATE.filters[k] = new Set());
+
+  // Reset selector de año a default del dashboard (comportamiento inicial)
   dashEnsureDefaultYear(true);
 
+  // Reset rango de fechas
+  dashSetDateRange(null, null);
+  // Sincroniza fechas con años por defecto (sin re-render inmediato)
+  dashSyncYearsAndDates("years", true, true);
+  dashUpdateDateRangeControlsUI();
+
+  // Reset paginación
+  DASH_STATE.critPage = 1;
+  DASH_STATE.muniPage = 1;
+  DASH_STATE.aprPage = 1;
+
+  // Reset ordenamientos
+  DASH_STATE.critSort = null;
+  DASH_STATE.muniSort = null;
+
+  // Reset UI inputs
   const s = document.getElementById("dashSearch");
   if(s) s.value = "";
+
+  const ds = document.getElementById("dashDateStartInput");
+  const de = document.getElementById("dashDateEndInput");
+  if(ds) ds.value = "";
+  if(de) de.value = "";
+
+  const aprS = document.getElementById("dashAprSearch");
+  if(aprS) aprS.value = "";
+
+  // Re-render determinístico
   dashBumpRev();
   dashRequestRender();
 }
@@ -7856,6 +8409,8 @@ function renderDashboardView(){
 
   // Overlay inicial de años: se muestra la primera vez que se abre Dashboard (si hay años disponibles)
   dashRenderYearDropdown();
+  dashSyncYearsAndDates("years", true, true);
+  dashUpdateDateRangeControlsUI();
   const overlayShown = dashShowYearOverlayIfNeeded();
   if(!overlayShown){
     dashRender();
@@ -7875,6 +8430,20 @@ function dashInitUI(){
       dashRequestRender();
     }, 120);
     search.addEventListener("input", onSearch);
+  }
+
+  // Rango de fechas (selector nativo)
+  const ds = document.getElementById("dashDateStartInput");
+  const de = document.getElementById("dashDateEndInput");
+  if(ds && de){
+    const onDate = debounce(() => {
+      dashSetDateRange(parseDateInput(ds.value), parseDateInput(de.value));
+      dashSyncYearsAndDates("dates");
+    }, 60);
+    ds.addEventListener("change", onDate);
+    de.addEventListener("change", onDate);
+    ds.addEventListener("input", onDate);
+    de.addEventListener("input", onDate);
   }
 
   const clearBtn = document.getElementById("dashClearBtn");
@@ -7912,6 +8481,7 @@ function dashInitUI(){
 function dashRender(){
   dashEnsureDefaultYear(false);
   dashRenderYearDropdown();
+  dashUpdateDateRangeControlsUI();
 
   if(ACTIVE_REPORT_ID !== "dashboard") return;
 
@@ -7943,6 +8513,21 @@ function dashRenderActiveFilters(){
   if(q){
     pills.push({label:`Búsqueda: ${q}`, onClick: () => { DASH_STATE.search=""; const s=document.getElementById("dashSearch"); if(s) s.value=""; dashRender();
   try{ setTimeout(()=>{ const c = (DASH_STATE && DASH_STATE.charts) ? DASH_STATE.charts.empresaPie : null; if(c && typeof c.resize==='function'){ c.resize(); c.update(); } }, 80); }catch(e){} }});
+  }
+
+  const ds = formatISODate(DASH_STATE.dateStart);
+  const de = formatISODate(DASH_STATE.dateEnd);
+  if(ds || de){
+    pills.push({
+      label: `Fechas: ${ds || '(sin inicio)'} → ${de || '(sin fin)'}`,
+      onClick: () => {
+        dashSetDateRange(null, null);
+        dashShowYearDateSyncMessage("");
+        dashUpdateDateRangeControlsUI();
+        dashBumpRev();
+        dashRequestRender();
+      }
+    });
   }
 
   // dimension filters
@@ -9739,60 +10324,35 @@ function dashInitCritDoubleScroll(){
 // =========================================================
 const DASH_CRIT_COLS = [
   {num:false, get:r => String(r?.ficha||"")},                                     // 0 Ficha
-  {num:false, get:r => dashStr(r?.estado,"")},                                   // 1 Estado
-  {num:false, get:r => dashStr(r?.municipio,"")},                                // 2 Municipio
-  {num:false, get:r => dashStr(r?.programa,"")},                                 // 3 Programa
-  {num:false, get:r => dashStr(r?.responsable,"")},                              // 4 Responsable
-  {num:true,  get:r => Number(r?.diasAtraso)||0},                                // 5 Días atraso
-  {num:true,  get:r => Number(r?.matriculados)||0},                              // 6 Matric.
-  {num:true,  get:r => Number(r?.activos)||0},                                   // 7 Activos
-  {num:true,  get:r => Number(r?.sinRuta)||0},                                   // 8 Sin ruta
-  {num:true,  get:r => Number(r?.aprendicesSinJuicio || r?.sinJuicio || 0) || 0},// 9 Sin juicio
-  {num:true,  get:r => (Number(r?.condicionado)||0) + (Number(r?.aplazado)||0) + (Number(r?.cancelado)||0) + (Number(r?.retiro)||0)}, // 10 Novedades
-  {num:true,  get:r => Number(r?.enTransito)||0},                                // 11 EN_TRANSITO
-  {num:true,  get:r => Number(r?.enInduccion)||0},                               // 12 INDUCCION
-  {num:true,  get:r => Number(r?.enFormacion || r?.formacion || 0) || 0},        // 13 FORMACION
-  {num:true,  get:r => Number(r?.condicionado)||0},                              // 14 CONDICIONADO
-  {num:true,  get:r => Number(r?.aplazado)||0},                                  // 15 APLAZADO
-  {num:true,  get:r => Number(r?.retiro)||0},                                    // 16 RETIRO_VOLUNTARIO
-  {num:true,  get:r => Number(r?.cancelado)||0},                                 // 17 CANCELADO
-  {num:true,  get:r => Number(r?.porCertificar)||0},                             // 18 POR_CERTIFICAR
-  {num:true,  get:r => (Number(r?.certificados)||0) + (Number(r?.certificado)||0)}, // 19 CERTIFICADO
-  {num:true,  get:r => Number(r?.trasladado)||0},                                // 20 TRASLADADO
+  {num:true,  get:r => {                                                         // 1 Fecha Inicio
+    const d = parseDateLoose(r?.fechaInicioRaw || r?.fechaInicio || "");
+    return d ? new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() : NaN;
+  }},
+  {num:true,  get:r => {                                                         // 2 Fecha Fin
+    const d = parseDateLoose(r?.fechaFinRaw || r?.fechaFin || "");
+    return d ? new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() : NaN;
+  }},
+  {num:false, get:r => dashStr(r?.estado,"")},                                    // 3 Estado
+  {num:false, get:r => dashStr(r?.municipio,"")},                                 // 4 Municipio
+  {num:false, get:r => dashStr(r?.programa,"")},                                  // 5 Programa
+  {num:false, get:r => dashStr(r?.responsable,"")},                               // 6 Responsable
+  {num:true,  get:r => Number(r?.diasAtraso)||0},                                 // 7 Días atraso
+  {num:true,  get:r => Number(r?.matriculados)||0},                               // 8 Matric.
+  {num:true,  get:r => Number(r?.activos)||0},                                    // 9 Activos
+  {num:true,  get:r => Number(r?.sinRuta)||0},                                    // 10 Sin ruta
+  {num:true,  get:r => Number(r?.aprendicesSinJuicio || r?.sinJuicio || 0) || 0}, // 11 Sin juicio
+  {num:true,  get:r => (Number(r?.condicionado)||0) + (Number(r?.aplazado)||0) + (Number(r?.cancelado)||0) + (Number(r?.retiro)||0)}, // 12 Novedades
+  {num:true,  get:r => Number(r?.enTransito)||0},                                 // 13 EN_TRANSITO
+  {num:true,  get:r => Number(r?.enInduccion)||0},                                // 14 INDUCCION
+  {num:true,  get:r => Number(r?.enFormacion || r?.formacion || 0) || 0},         // 15 FORMACION
+  {num:true,  get:r => Number(r?.condicionado)||0},                               // 16 CONDICIONADO
+  {num:true,  get:r => Number(r?.aplazado)||0},                                   // 17 APLAZADO
+  {num:true,  get:r => Number(r?.retiro)||0},                                     // 18 RETIRO_VOLUNTARIO
+  {num:true,  get:r => Number(r?.cancelado)||0},                                  // 19 CANCELADO
+  {num:true,  get:r => Number(r?.porCertificar)||0},                              // 20 POR_CERTIFICAR
+  {num:true,  get:r => (Number(r?.certificados)||0) + (Number(r?.certificado)||0)}, // 21 CERTIFICADO
+  {num:true,  get:r => Number(r?.trasladado)||0},                                 // 22 TRASLADADO
 ];
-
-const DASH_MUNI_COLS = [
-  {num:false, get:x => String(x?.municipio||"")},                          // 0 Municipio
-  {num:true,  get:x => Number(x?.fichas)||0},                              // 1 Fichas
-  {num:true,  get:x => Number(x?.cupo)||0},                                // 2 Cupo
-  {num:true,  get:x => Number(x?.matric)||0},                              // 3 Matric.
-  {num:true,  get:x => Number(x?.activos)||0},                             // 4 Activos
-  {num:true,  get:x => {
-    const c = Number(x?.cupo)||0;
-    const m = Number(x?.matric)||0;
-    return c > 0 ? (m / c) : 0;
-  }},                                                                      // 5 Ocupación %
-  {num:true,  get:x => {
-    const m = Number(x?.matric)||0;
-    const a = Number(x?.activos)||0;
-    return m > 0 ? (a / m) : 0;
-  }},                                                                      // 6 Efectividad %
-  {num:true,  get:x => Number(x?.atrasadas)||0},                           // 7 Atrasadas
-  {num:true,  get:x => Number(x?.enTransito)||0},                          // 8 EN_TRANSITO
-  {num:true,  get:x => Number(x?.enInduccion)||0},                         // 9 INDUCCION
-  {num:true,  get:x => Number(x?.enFormacion)||0},                         // 10 FORMACION
-  {num:true,  get:x => Number(x?.condicionado)||0},                        // 11 CONDICIONADO
-  {num:true,  get:x => Number(x?.aplazado)||0},                            // 12 APLAZADO
-  {num:true,  get:x => Number(x?.retiro)||0},                              // 13 RETIRO_VOLUNTARIO
-  {num:true,  get:x => Number(x?.cancelado)||0},                           // 14 CANCELADO
-  {num:true,  get:x => Number(x?.porCertificar)||0},                       // 15 POR_CERTIFICAR
-  {num:true,  get:x => Number(x?.certificado)||0},                         // 16 CERTIFICADO
-  {num:true,  get:x => Number(x?.trasladado)||0},                          // 17 TRASLADADO
-  {num:true,  get:x => Number(x?.sinCert)||0},                             // 18 Aprendices sin certificados
-  {num:true,  get:x => Number(x?.sinJuicio)||0},                           // 19 APRENDICES_SIN_JUICIO
-  {num:true,  get:x => Number(x?.noAprob)||0},                             // 20 APRENDICES_NO_APROBADOS
-];
-
 
 function dashCritApplySort(baseRows){
   const st = DASH_STATE?.critSort;
@@ -10087,7 +10647,9 @@ function dashRenderTables(rows){
       return `
         <tr data-ficha="${escHtml(String(r?.ficha||""))}">
           <td><b>${escHtml(String(r?.ficha||""))}</b></td>
-          <td>${escHtml(dashStr(r?.estado,""))}</td>
+          <td>${escHtml(dashStr(r?.fechaInicio,"(Sin dato)"))}</td>
+          <td>${escHtml(dashStr(r?.fechaFin,"(Sin dato)"))}</td>
+          <td>${escHtml(dashStr(r?.estado,"(Sin dato)"))}</td>
           <td title="${escHtml(dashStr(r?.municipio,""))}">${escHtml(dashStr(r?.municipio,""))}</td>
           <td title="${escHtml(dashStr(r?.programa,""))}">${escHtml(dashStr(r?.programa,""))}</td>
           <td title="${escHtml(dashStr(r?.responsable,""))}">${escHtml(dashStr(r?.responsable,""))}</td>
@@ -12408,6 +12970,27 @@ if(_searchEl){
     renderCharts(REPORTS[ACTIVE_REPORT_ID]);
   });
 }
+
+
+// Rango de fechas (solo r14/r15): sincroniza con selector de años
+(function bindDateRangeInputs(){
+  const a = document.getElementById("dateStartInput");
+  const b = document.getElementById("dateEndInput");
+  if(!a || !b) return;
+
+  const onChange = () => {
+    if(typeof DATE_RANGE_REPORTS === "undefined" || !DATE_RANGE_REPORTS.has(ACTIVE_REPORT_ID)) return;
+    const start = parseDateInput(a.value);
+    const end = parseDateInput(b.value);
+    setDateRange(ACTIVE_REPORT_ID, start, end);
+    syncYearsAndDates("dates");
+  };
+
+  a.addEventListener("change", onChange);
+  b.addEventListener("change", onChange);
+  a.addEventListener("blur", onChange);
+  b.addEventListener("blur", onChange);
+})();
 
 
 // Apply filters re-render
